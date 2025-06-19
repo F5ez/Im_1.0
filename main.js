@@ -1,8 +1,7 @@
-// main.js
 import * as THREE from "three";
 
 document.addEventListener("DOMContentLoaded", () => {
-    // 1. Scene, cube
+    // 1. Сцена и объект
     const scene = new THREE.Scene();
     const geometry = new THREE.BoxGeometry(1, 1, 1);
     const material = new THREE.MeshBasicMaterial({ color: "#0000FF" });
@@ -11,51 +10,45 @@ document.addEventListener("DOMContentLoaded", () => {
     cube.rotation.set(0, Math.PI / 4, 0);
     scene.add(cube);
 
-    // 2. Camera
+    // 2. Камера
     const camera = new THREE.PerspectiveCamera(
         75,
         window.innerWidth / window.innerHeight,
         0.1,
         1000
     );
-    camera.position.set(1, 1, 5);
+    camera.position.set(0, 0, 5);
 
-    // 3. Renderer
+    // 3. Рендерер
     const renderer = new THREE.WebGLRenderer({ alpha: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.domElement.style.position = "absolute";
 
-    // 4. Video stream
+    // 4. Видео с камеры
     const video = document.createElement("video");
     video.style.position = "absolute";
-    video.width = renderer.domElement.width;
-    video.height = renderer.domElement.height;
+    video.setAttribute("autoplay", true);
+    video.setAttribute("muted", true);
+    video.setAttribute("playsinline", true);
 
     navigator.mediaDevices
         .getUserMedia({ video: true })
         .then((stream) => {
             video.srcObject = stream;
-            return video.play();
+            video.play();
         })
         .catch((err) => console.error("getUserMedia error:", err));
 
-    // 5. Append in order: video below, canvas above
+    // 5. Добавляем в DOM: сначала видео, потом канвас
     document.body.appendChild(video);
     document.body.appendChild(renderer.domElement);
 
-
-    function nextVideoFrameReady() {
-        return new Promise((resolve) => requestAnimationFrame(resolve));
+    // 6. Анимация
+    function animate() {
+        requestAnimationFrame(animate);
+        cube.rotation.y += 0.01;
+        renderer.render(scene, camera);
     }
 
-    // 7. AR update loop: update camera pose & render
-    (async () => {
-        while (true) {
-            await nextVideoFrameReady();
-            const { position, rotation } = ar.computeCameraPose(video);
-            camera.position.copy(position);
-            camera.rotation.set(rotation.x, rotation.y, rotation.z);
-            renderer.render(scene, camera);
-        }
-    })();
+    animate();
 });
